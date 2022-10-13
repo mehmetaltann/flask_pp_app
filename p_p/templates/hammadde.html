@@ -1,0 +1,114 @@
+{% extends "layout.html" %}
+{% block head %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.23/fc-3.3.2/fh-3.1.8/r-2.2.7/sc-2.0.3/sl-1.3.1/datatables.min.css"/>
+{% endblock head %}
+{% block title %}Malzemeler{% endblock %}
+{% block body %}
+{% import "macros.html" as m %}
+
+<!-- ? İçerik -->
+<div class="container">
+  {{m.ust_bilgi("Malzemeler","fas fa-wheat-awn")}}
+
+  <!-- ? Hammadde Ekleme -->
+  <div class="row mt-3">
+    <button type="submit" class="btn btn-block btn-outline-primary" data-toggle="modal" data-target="#hammaddeekle"><i class="fas fa-plus"></i> Malzeme Ekle</button>   
+    {{m.model_acilis("hammaddeekle","hammaddelerModalLabel")}}
+    {{m.model_header("Hammadde Ekle","hammaddelerModalLabel")}}
+      <form action="{{url_for('main.hammadde_ekle')}}" method="POST">
+        {{m.input_group_modal_zorunlu("İsim","text","hammaddeisimekle","")}}
+        {{m.input_group_modal_zorunlu("Miktar","number","hammaddemiktarekle", "")}}
+        {% call m.select_modal("Tür","hammaddebirimekle") %}
+          <option value="Gram">Gram</option>
+          <option value="KG">KG</option>
+          <option value="Adet">Adet</option>
+          <option value="Metre">Metre</option>
+          <option value="Litre">Litre</option>
+          <option value="MiliLitre">MiliLitre</option>
+          <option value="saat">Saat</option>
+        {% endcall %}
+        {{m.input_group_modal_2_zorunlu("Fiyat","TL","number","hammaddefiyatekle", "")}}
+        {{m.input_group_modal_zorunlu_degil("Marka","text","hammaddemarkaekle", "")}}
+        {% call m.select_modal("Tür","hammaddetürüekle") %}
+          <option value="Gıda">Gıda</option>
+          <option value="Ambalaj">Ambalaj</option>
+          <option value="Diğer">Diğer</option>
+        {% endcall %}
+        <!-- {{m.input_group_modal_zorunlu("Tür","text","hammaddetürüekle", "")}}        -->
+        {{m.input_group_modal_zorunlu("Alınma Tarihi","date","hammaddealinmatarihiekle", "")}}
+        {{m.input_group_modal_zorunlu_degil("Not","text","hammaddenotekle", "")}}
+        {{m.button_resimsiz("KAYDET")}}
+      </form>
+    {{m.model_kapanis()}}
+  </div>
+  <!-- ? Hammadde Ekleme -->
+
+  <!-- ? Arama-->
+  <div class="row mt-4">
+    {{m.input_group_id("Arama","fas fa-search","text","hammadde_ara","hammadde_ara","")}}
+  </div>
+  <!-- ? Arama-->
+
+  <!-- ? Veri Tablosu-->
+  <div class="row mt-2">
+    <table id="hammaddeler" class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+      {{m.tablehead_9("","İsim","Miktar","Birim","Fiyat","Marka","Tür","Alınma Tarihi","İşlemler")}}
+      <tbody> 
+        {% for hammadde in hammaddeler|sort(reverse=false, attribute="id") %} 
+        <tr >
+          <th>{{loop.index}}</th>
+          <td>{{hammadde.isim}}</td>
+          <td>{{hammadde.miktar}}</td>
+          <td>{{hammadde.birim}}</td>
+          <td>{{hammadde.fiyat|currencyFormat}}</td>
+          <td>{{hammadde.marka}}</td>
+          <td>{{hammadde.tur}}</td>
+          <td>{{hammadde.alinma_tarihi.strftime('%d.%m.%Y')}}</td>
+          <td>
+            <button type="submit" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#myOutput{{hammadde.id}}"><span class="fas fa-pen fa-xs"></button>                        
+              <div class="modal fade" id="myOutput{{hammadde.id}}" tabindex="-1" role="dialog" aria-labelledby="^#kitapgunModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    {{m.model_header("Hammadde Güncelle","HammaddeModalLabel")}}
+                      <form action="{{url_for('main.hammadde_guncelle', hammadde_id=hammadde.id)}}" method="POST">
+                        {{m.input_group_modal_zorunlu("İsim","text","hammaddeisimguncelle", hammadde.isim)}}
+                        {{m.input_group_modal_zorunlu("Miktar","number","hammaddemiktarguncelle", hammadde.miktar)}}
+                        {% call m.select_modal("Birim","hammaddebirimguncelle") %}
+                          <option value="Gram" {{'selected' if hammadde.birim == "Gram" }}>Gram</option>
+                          <option value="KG" {{'selected' if hammadde.birim == "KG" }}>KG</option>
+                          <option value="Adet" {{'selected' if hammadde.birim == "Adet" }}>Adet</option>
+                          <option value="Metre" {{'selected' if hammadde.birim == "Metre" }}>Metre</option>
+                          <option value="Litre" {{'selected' if hammadde.birim == "Litre" }}>Litre</option>
+                          <option value="Mililitre" {{'selected' if hammadde.birim == "Mililitre" }}>Mililitre</option>
+                          <option value="Saat" {{'selected' if hammadde.birim == "Saat" }}>Saat</option>
+                        {% endcall %}
+                        {{m.input_group_modal_2_zorunlu("Fiyat","TL","number","hammaddefiyatguncelle", hammadde.fiyat)}}
+                        {{m.input_group_modal_zorunlu_degil("Marka","text","hammaddemarkaguncelle", hammadde.marka)}}
+                        {% call m.select_modal("Tür","hammaddeturguncelle") %}
+                          <option value="Gıda" {{'selected' if hammadde.tur == "Gıda" }}>Gıda</option>
+                          <option value="Ambalaj" {{'selected' if hammadde.tur == "Ambalaj" }}>Ambalaj</option>
+                          <option value="Diğer" {{'selected' if hammadde.tur == "Diğer" }}>Diğer</option>
+                        {% endcall %}
+                        {{m.input_group_modal_zorunlu("Alınma Tarihi","date","hammaddealinmatarihiguncelle", hammadde.alinma_tarihi)}}
+                        {{m.input_group_modal_zorunlu_degil("Açıklama","text","hammaddenotguncelle", hammadde.aciklama)}}
+                        {{m.button_resimsiz("GÜNCELLE")}}
+                      </form>
+                    {{m.model_kapanis()}}
+          {{m.sil(hammadde.id,"hammaddeareadelete",url_for('main.hammadde_sil', hammadde_id=hammadde.id))}}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table> 
+  </div>
+  <!-- ? Veri Tablosu-->
+
+</div>
+<!-- ? İçerik -->
+{% endblock body %}
+
+<!-- ? TABLO JAVASCRIPT -->
+{% block script %}
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.23/fc-3.3.2/fh-3.1.8/r-2.2.7/sc-2.0.3/sl-1.3.1/datatables.min.js"></script>
+<script src="{{url_for ('static', filename='js/datatable.js')}}"></script>
+{% endblock script %}

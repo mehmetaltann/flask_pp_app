@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block head %}
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+{% endblock head %}
+{% block title %}İstatistik{% endblock %}
+{% block body %}
+{% import "macros.html" as m %}
+
+<!-- ? İçerik -->
+<div class="container p4-5">
+    {{m.ust_bilgi("İstatistikler","fas fa-cash-register")}}
+
+    <!-- ? Arama -->
+    <form class="row g-2 pb-2" action="{{url_for('main.rakamlari_getir')}}" method="POST">
+        <div class="col">
+            {% call m.select("Zaman Aralığı (Son)","suregir") %}
+                <option value="3 Ay"{{'selected' if sure == "3 Ay" }}>3 Ay</option>
+                <option value="6 Ay"{{'selected' if sure == "6 Ay" }}>6 Ay</option>
+                <option value="9 Ay"{{'selected' if sure == "9 Ay" }}>9 Ay</option>
+                <option value="1 Yıl"{{'selected' if sure == "1 Yıl" }}>1 Yıl</option>
+                <option value="2 Yıl"{{'selected' if sure == "2 Yıl" }}>2 Yıl</option>
+                <option value="3 Yıl"{{'selected' if sure == "3 Yıl" }}>3 Yıl</option>
+                <option value="Tüm Zamanlar"{{'selected' if sure == "Tüm Zamanlar" }}>Tüm Zamanlar</option>
+            {% endcall %}
+        </div>
+        <div class="col">
+            {{m.button_class("Sorgula","fas fa-search","btn btn-outline-primary btn-block")}}
+        </div>
+    </form>
+    <!-- ? Arama -->
+
+    <!-- ? Grafikler -->
+    <div class="row g-2 py-3">
+        {% include "includes/grafik.html" %} 
+    </div>
+    <!-- ? Grafikler -->
+
+</div>
+<!-- ? İçerik -->
+
+{% endblock body %}

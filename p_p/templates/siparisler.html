@@ -1,0 +1,154 @@
+{% extends "layout.html" %}
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.23/fc-3.3.2/fh-3.1.8/r-2.2.7/sc-2.0.3/sl-1.3.1/datatables.min.css"/>
+{% endblock head %}
+{% block title %}Siparişler{% endblock %}
+{% block body %}
+{% import "macros.html" as m %}
+
+<!-- ? İçerik -->
+<div class="container-fluid px-5">
+  {{m.ust_bilgi("Siparişler","fas fa-basket-shopping")}}
+
+  <!-- ? Sipariş Ekleme -->
+  <div class="row mt-3 mx-1">
+    <button type="submit" class="btn btn-block btn-outline-primary" data-toggle="modal" data-target="#siparisekle"><i class="fas fa-plus"></i>Sipariş Ekle</button>   
+    {{m.model_acilis("siparisekle","siparislerModalLabel")}}
+    {{m.model_header("Sipariş Ekle","siparislerModalLabel")}}
+      <form action="{{url_for('main.siparis_ekle')}}" method="POST">
+        {% call m.select_modal("Müşteri","siparismusteriekle") %}
+          {% for musteri in musteriler %}
+            <option value="{{musteri.id}}">{{musteri.isim}}&nbsp{{musteri.soyisim}}</option>
+          {% endfor %}  
+        {% endcall %}
+        {% call m.select_modal("Ürün","siparisurunekle") %}
+          {% for urun in urunler %}
+            <option value="{{urun.id}}">{{urun.isim}}&nbsp&nbsp{{urun.boyut}}</option>
+          {% endfor %}
+        {% endcall %}
+        {{m.input_group_modal_zorunlu("Tarih","date","siparistarihiekle", "")}}
+        {% call m.select_modal("Kullanım","siparisturekle") %}
+          <option value="Doğum Günü">Doğum Günü</option>
+          <option value="Yıl Dönümü">Yıl Dönümü</option>
+          <option value="Nişan">Nişan</option>
+          <option value="Özel Gün">Özel Gün</option>
+          <option value="Nişan">Düğün</option>
+          <option value="Diğer">Diğer</option>
+        {% endcall %}
+        {{m.input_group_modal_zorunlu_degil("Model","text","siparismodelekle", "")}} 
+        {{m.input_group_modal_zorunlu_degil("Not","text","siparisnotekle", "")}}   
+        {{m.input_group_modal_2("Fiyat","TL","number","siparistutarekle", "")}}   
+        {{m.button_resimsiz("KAYDET")}}
+      </form>
+    {{m.model_kapanis()}}
+  </div>
+  <!-- ? Sipariş Ekleme -->
+
+  <!-- ? Arama-->
+  <div class="row mt-4">
+    {{m.input_group_id("Arama","fas fa-search","text","siparis_ara","siparis_ara","")}}
+  </div>
+  <!-- ? Arama-->
+
+  <!-- ? Sipariş Veri Tablosu-->
+  <div class="row mt-3">
+    <table id="siparisler" class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+      {{m.tablehead_13("","Tarih","Müşteri","Ürün","Kullanım","Model","Notlar","Fiyat","Maliyet","Kar","% Kar","İşlemler","Ürün")}}
+      <tbody> 
+        {% for siparis in siparisler|sort(reverse=true, attribute="tarih") %}    
+        <tr>
+          <th>{{loop.index}}</th>
+          <th>{{siparis.tarih.strftime('%d.%m.%Y')}}</th> 
+          <td>{% for musterisiparis in siparis.musteri %} 
+                {{musterisiparis.musteri.isim}}&nbsp{{musterisiparis.musteri.soyisim}}
+              {% endfor %}</td>
+          <td>{% for siparisurun in siparis.urunler %} 
+                {{siparisurun.urun.isim}}&nbsp&nbsp{{siparisurun.urun.boyut}}<br>
+              {% endfor %}
+          </td> 
+          <td>{{siparis.tur}}</td>
+          <td>{{siparis.model}}</td>
+          <td>{{siparis.aciklama}}</td>
+          <td>{{siparis.tutar|round|int}}</td>
+          <td>
+              {{(siparis.maliyet)|round|int}}
+          </td>
+          <td>{{(siparis.tutar - siparis.maliyet)|round|int}}</td>
+          <td>% {{((siparis.tutar - siparis.maliyet) / siparis.tutar *100)|round|int}}</td>
+          <!-- ? İşlemler -->
+          <td>
+            <!-- ? Sipariş Güncelleme -->
+            <button type="submit" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#siparis{{siparis.id}}"><span class="fas fa-pen fa-xs"></button>                        
+            <div class="modal fade" id="siparis{{siparis.id}}" tabindex="-1" role="dialog" aria-labelledby="#siparisModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  {{m.model_header("Sipariş Güncelle","siparisModalLabel")}}
+                    <form action="{{url_for('main.siparis_guncelle', siparis_id=siparis.id)}}" method="POST">
+                      {{m.input_group_modal_zorunlu("Tarih","date","siparistarihiguncelle", siparis.tarih)}}
+                      {% call m.select_modal("Kullanım","siparisturguncelle") %}
+                          <option value="Doğum Günü" {{'selected' if siparis.tur == "Doğum Günü" }}>Doğum Günü</option>
+                          <option value="Yıl Dönümü" {{'selected' if siparis.tur == "Yıl Dönümü" }}>Yıl Dönümü</option>
+                          <option value="Nişan" {{'selected' if siparis.tur == "Nişan" }}>Nişan</option>
+                          <option value="Özel Gün" {{'selected' if siparis.tur == "Özel Gün" }}>Özel Gün</option>
+                          <option value="Düğün" {{'selected' if siparis.tur == "Düğün" }}>Düğün</option>
+                          <option value="Diğer" {{'selected' if siparis.tur == "Diğer" }}>Diğer</option>
+                      {% endcall %}
+                      {{m.input_group_modal_zorunlu_degil("Model","text","siparismodelguncelle", siparis.model)}}
+                      {{m.input_group_modal_zorunlu_degil("Not","text","siparisnotguncelle", siparis.aciklama)}}
+                      {{m.input_group_modal_2_zorunlu("Fiyat","TL","number","siparisfiyatguncelle", siparis.tutar)}} 
+                      {{m.button_resimsiz("GÜNCELLE")}}
+                    </form>
+            {{m.model_kapanis()}}
+            <!-- ? Sipariş Silme -->
+            {{m.sil(siparis.id,"siparisareadelete",url_for('main.siparis_sil', siparis_id=siparis.id))}}    
+          </td>
+          <!-- ? İşlemler-2 -->
+          <td>
+            <!-- ? Ürün Ekleme -->
+            <button type="submit" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#urunekle{{siparis.id}}"><span class="fas fa-plus fa-xs"></button>                        
+              <div class="modal fade" id="urunekle{{siparis.id}}" tabindex="-1" role="dialog" aria-labelledby="#urunekleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    {{m.model_header("Ürün Ekle","urunekleModalLabel")}}
+                      <form action="{{url_for('main.siparis_urun_ekle', siparis_id=siparis.id)}}" method="POST">
+                        {% call m.select_modal("Ürün","siparisekurunekle") %}
+                          {% for urun in urunler %}
+                            <option value="{{urun.id}}">{{urun.isim}}&nbsp&nbsp{{urun.boyut}}</option>
+                          {% endfor %}
+                        {% endcall %}
+                        {{m.button_resimsiz("Ekle")}}
+                      </form>
+                {{m.model_kapanis()}}        
+            
+            <!-- ? Ürün Çıkarma -->
+            <button type="submit" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#uruncikar{{siparis.id}}"><span class="fas fa-minus fa-xs"></button>                        
+              <div class="modal fade" id="uruncikar{{siparis.id}}" tabindex="-1" role="dialog" aria-labelledby="#uruncikarModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    {{m.model_header("Ürün Çıkar","uruncikarModalLabel")}}
+                    <form action="{{url_for('main.siparis_urun_sil', siparis_id=siparis.id)}}" method="POST">
+                      {% call m.select_modal("Ürün","siparisuruncikar") %}
+                        {% for siparisurun in siparis.urunler %} 
+                          <option value="{{siparisurun.urun.id}}">{{siparisurun.urun.isim}}&nbsp&nbsp{{siparisurun.urun.boyut}}</option>
+                        {% endfor %}
+                      {% endcall %}
+                      {{m.button_resimsiz("Çıkar")}}
+                    </form>
+              {{m.model_kapanis()}}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table> 
+  </div>
+  <!-- ? Sipariş Veri Tablosu-->
+
+</div>
+<!-- ? İçerik -->
+{% endblock body %}
+
+<!-- ? TABLO JAVASCRIPT -->
+{% block script %}
+  <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.23/fc-3.3.2/fh-3.1.8/r-2.2.7/sc-2.0.3/sl-1.3.1/datatables.min.js"></script>
+  <script src="{{url_for ('static', filename='js/datatable.js')}}"></script>
+{% endblock script %}

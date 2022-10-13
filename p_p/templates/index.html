@@ -1,0 +1,571 @@
+{% extends "layout.html" %}
+{% block title %}Ana Sayfa{% endblock %}
+{% block head %}
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css"/>
+<link href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css' rel='stylesheet'>
+{% endblock head %}
+{% block body %}
+{% import "macros.html" as m %}
+
+<!-- Content wrapper -->
+<div class="content-wrapper">
+            
+  <!-- Content -->
+  <div class="container-xxl flex-grow-1 container-p-y">
+
+    <!-- !Ust Taraf -->
+    <div class="row">
+
+      <!-- ? Logo + Butonlar -->
+      <div class="col-lg-6 mb-6 mt-1 order-0">
+        <div class="card">
+          <div class="d-flex align-items-end row">
+            <div class="col-sm-5 text-center text-sm-start">
+              <div class="card-body pb-0 px-0 px-md-4">
+                <img
+                  src="{{url_for ('static', filename='img/logo.png')}}"
+                  height="320"
+                  alt="Logo"/>
+              </div>
+            </div>
+            <div class="col-sm-7 mb-4 pb-4 text-center">
+              <div class="card-body">
+                <h5 class="card-title text-primary mb-4">Tebrikler Senam 🎉</h5>
+                  <p class="mb-4 pb-4"> Son 10 günde <span class="fw-bold">{{siparis_istatistikleri.gecen_on_gunun_siparisleri|length}}</span> yeni siparişi daha tamamladın.</p>
+                  
+                  <!-- ? Yeni Sipariş Ekle -->
+                  <button type="submit" class="btn btn-lg btn-outline-primary" data-toggle="modal" data-target="#indexsiparisekle"><i class="fas fa-light fa-cart-plus"></i>Yeni Sipariş</button>   
+                    {{m.model_acilis("indexsiparisekle","siparislerindexModalLabel")}}
+                    {{m.model_header("Sipariş Ekle","siparislerindexModalLabel")}}
+                    <form action="{{url_for('main.index_siparis_ekle')}}" method="POST">
+                      {% call m.select_modal("Müşteri","siparismusteriekle") %}
+                        {% for musteri in musteriler %}
+                          <option value="{{musteri.id}}">{{musteri.isim}}&nbsp{{musteri.soyisim}}</option>
+                        {% endfor %}  
+                      {% endcall %}
+                      {% call m.select_modal("Ürün","siparisurunekle") %}
+                        {% for urun in urunler %}
+                        <option value="{{urun.id}}">{{urun.isim}}&nbsp&nbsp{{urun.boyut}}</option>
+                        {% endfor %}
+                      {% endcall %}
+                      {{m.input_group_modal_zorunlu("Tarih","date","siparistarihiekle", "")}}
+                      {% call m.select_modal("Kullanım","siparisturekle") %}
+                        <option value="Doğum Günü">Doğum Günü</option>
+                        <option value="Yıl Dönümü">Yıl Dönümü</option>
+                        <option value="Nişan">Nişan</option>
+                        <option value="Özel Gün">Özel Gün</option>
+                        <option value="Nişan">Düğün</option>
+                        <option value="Diğer">Diğer</option>
+                      {% endcall %} 
+                      {{m.input_group_modal_zorunlu_degil("Model","text","siparismodelekle", "")}} 
+                      {{m.input_group_modal_zorunlu_degil("Not","text","siparisnotekle", "")}} 
+                      {{m.input_group_modal_2("Fiyat","TL","number","siparistutarekle", "")}}     
+                      {{m.button_resimsiz("KAYDET")}}
+                    </form>
+                    {{m.model_kapanis()}}
+                  
+                  <!-- ? Yeni Müşteri Ekle -->
+                  <button type="submit" class="btn btn-lg btn-outline-primary" data-toggle="modal" data-target="#indexmusteriekle"><i class="fas fa-solid fa-user-plus"></i>Yeni Müşteri</button>   
+                    {{m.model_acilis("indexmusteriekle","indexmusterilerModalLabel")}}
+                    {{m.model_header("Müşteri Ekle","indexmusterilerModalLabel")}}
+                    <form action="{{url_for('main.index_musteri_ekle')}}" method="POST">
+                      {{m.input_group_modal_zorunlu("İsim","text","musteriisimekle","")}}
+                      {{m.input_group_modal_zorunlu_degil("Soyisim","text","musterisoyisimekle", "")}}
+                      {{m.input_group_modal_zorunlu_degil("Telefon","number","musteritelefonekle", "")}}
+                      {{m.input_group_modal_zorunlu_degil("Not","text","musterinotekle", "")}}      
+                      {{m.button_resimsiz("KAYDET")}}
+                    </form>
+                    {{m.model_kapanis()}}
+                </div>
+            </div>    
+          </div>
+        </div>
+      </div>
+
+      <!-- ? Haftanın Siparişleri -->
+      <div class="col-lg-6 col-md-12 mt-2 order-1">
+        <div class="card">
+          <div class="card-body">
+            <div class="card-title d-flex align-items-start justify-content-between">
+              <h5 class="card-title text-primary">Haftanın Siparişleri</h5>
+            </div>
+            <table id="haftanın siparisleri" class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+              {{m.tablehead_5("","Tarih","Müşteri","Ürün","Fiyat")}}
+                <tbody>
+                {% for siparis in siparis_istatistikleri.haftanin_siparisleri|sort(reverse=false, attribute="tarih") %}    
+                  <tr>
+                    <th>{{loop.index}}</th>
+                    <td>{{siparis.tarih.strftime('%d.%m.%Y')}}</td> 
+                    <td>{% for musterisiparis in siparis.musteri %} 
+                          {{musterisiparis.musteri.isim}}&nbsp{{musterisiparis.musteri.soyisim}}
+                        {% endfor %}</td> 
+                    <td>{% for siparisurun in siparis.urunler %} 
+                          {{siparisurun.urun.isim}}&nbsp&nbsp{{siparisurun.urun.boyut}}<br>
+                        {% endfor %}</td> 
+                    <td>{{siparis.tutar|round|int}}</td>    
+                  </tr>
+                {% endfor %}
+                </tbody>
+            </table> 
+          </div>
+        </div>
+      </div>   
+    
+    </div>
+    <!-- !Ust Taraf -->
+
+    <!-- !Orta Taraf -->
+    <div class="row">
+
+      <!-- ? Takvim -->   
+      <div class="col-lg-8 col-md-12 order-0 order-md-0 order-lg-0 mb-4 mt-3">
+        <div class="card">
+          <div class="row row-bordered g-0 mb-4 order-0">
+            <div class="col-auto">
+              <div class="container pt-5 px-5 ">
+                <div id='calendar'></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <!-- ? Sipariş İstatislikleri -->   
+      <div class="col-lg-4 col-md-12 order-1 order-md-1 mt-3">
+        <div class="row">
+
+          <!-- ? Haftalık İstatislikler -->
+          <div class="col-12">
+            <div class="card mb-3">
+              <div class="card-body"> 
+                <div class="card-title">   
+                  <div class="row">
+                    <div class="col-6">
+                      <h5 class="text-nowrap mb-2">Haftalık Rakamlar</h5>
+                    </div>
+                    <div class="col-6 d-flex justify-content-end">
+                      <div class="avatar flex-shrink-0 me-3">
+                        <img src="{{url_for ('static', filename='img/icons/unicons/success.png')}}" alt="User" />
+                      </div>
+                    </div>
+                  </div>
+                  <span class="badge bg-label-warning rounded-pill align-items-end mb-2">{{bugun.yazi}}</span>  
+                </div>
+              <div class="card-group">
+                <div class="col text-center">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="card-title">
+                        <h6 class="text-nowrap mb-2">Sipariş Sayısı</h6>
+                      </div>
+                      <div class="mt-sm-auto">
+                        <h5 class="mb-0">{{siparis_istatistikleri.haftanin_siparisleri|length}}</h5>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col text-center">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="card-title">
+                        <h6 class="text-nowrap mb-2">Kazanç</h6>
+                      </div>
+                      <div class="mt-sm-auto">
+                        <h5 class="mb-0">{{siparis_istatistikleri.haftanin_siparisleri|sum(attribute='tutar')|round|currencyFormat}}</h5>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col text-center">
+                  <div class="card">
+                    <div class="card-body">
+                       <div class="card-title">
+                         <h6 class="text-nowrap mb-2">Kar</h6>
+                        </div>
+                        <div class="mt-sm-auto">
+                          <h5 class="mb-0">{{(siparis_istatistikleri.haftanin_siparisleri|sum(attribute='tutar') - siparis_istatistikleri.haftanin_siparisleri|sum(attribute='maliyet'))|round|currencyFormat}}</h5>
+                        </div> 
+                    </div>
+                  </div>
+                </div>
+               </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ? Aylık İstatislikler -->
+          <div class="col-12">
+            <div class="card mb-3">
+              <div class="card-body"> 
+                <div class="card-title">
+                  <div class="row">
+                    <div class="col-6">
+                      <h5 class="text-nowrap mb-2">Aylık Rakamlar</h5>
+                    </div>
+                    <div class="col-6 d-flex justify-content-end">
+                      <div class="avatar flex-shrink-0 me-3">
+                        <img src="{{url_for ('static', filename='img/icons/unicons/primary.png')}}" alt="User" />
+                      </div>
+                    </div>
+                  </div>
+                  <span class="badge bg-label-warning rounded-pill align-items-end mb-2">{{bugun.ay}}</span>  
+                </div>
+              <div class="card-group">
+                <div class="col text-center">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="card-title">
+                        <h6 class="text-nowrap mb-2">Sipariş Sayısı</h6>
+                      </div>
+                      <div class="mt-sm-auto">
+                        <h5 class="mb-0">{{siparis_istatistikleri.ayin_siparisleri|length}}</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col text-center">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="card-title">
+                        <h6 class="text-nowrap mb-2">Kazanç</h6>
+                      </div>
+                      <div class="mt-sm-auto">
+                        <h5 class="mb-0">{{siparis_istatistikleri.ayin_siparisleri|sum(attribute='tutar')|round|currencyFormat}}</h5>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col text-center">
+                  <div class="card">
+                    <div class="card-body">
+                       <div class="card-title">
+                         <h6 class="text-nowrap mb-2">Kar</h6>
+                        </div>
+                        <div class="mt-sm-auto">
+                          <h5 class="mb-0">{{(siparis_istatistikleri.ayin_siparisleri|sum(attribute='tutar') -  siparis_istatistikleri.ayin_siparisleri|sum(attribute='maliyet'))|round|currencyFormat}}</h5>
+                        </div> 
+                    </div>
+                  </div>
+                </div>
+               </div>
+              </div>
+            </div>
+          </div>
+              
+          <!-- ? Yıllık İstatislikler -->
+          <div class="col-12">
+            <div class="card mb-3">
+              <div class="card-body"> 
+                <div class="card-title">
+                  <div class="row">
+                    <div class="col-6">
+                      <h5 class="text-nowrap mb-2">Yıllık Rakamlar</h5>
+                    </div>
+                    <div class="col-6 d-flex justify-content-end">
+                      <div class="avatar flex-shrink-0 me-3">
+                        <img src="{{url_for ('static', filename='img/icons/unicons/warning.png')}}" alt="User" />
+                      </div>
+                    </div>
+                  </div>
+                  <span class="badge bg-label-warning rounded-pill align-items-end mb-2">{{bugun.yil}}</span>  
+                </div>
+              <div class="card-group">
+                <div class="col text-center">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="card-title">
+                        <h6 class="text-nowrap mb-2">Sipariş Sayısı</h6>
+                      </div>
+                      <div class="mt-sm-auto">
+                        <h5 class="mb-0">{{siparis_istatistikleri.yilin_siparisleri|length}}</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col text-center">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="card-title">
+                        <h6 class="text-nowrap mb-2">Kazanç</h6>
+                      </div>
+                      <div class="mt-sm-auto">
+                        <h5 class="mb-0">{{siparis_istatistikleri.yilin_siparisleri|sum(attribute='tutar')|round|currencyFormat}}</h5>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col text-center">
+                  <div class="card">
+                    <div class="card-body">
+                       <div class="card-title">
+                         <h6 class="text-nowrap mb-2">Kar</h6>
+                        </div>
+                        <div class="mt-sm-auto">
+                          <h5 class="mb-0">{{(siparis_istatistikleri.yilin_siparisleri|sum(attribute='tutar') -  siparis_istatistikleri.yilin_siparisleri|sum(attribute='maliyet'))|round|currencyFormat}}</h5>
+                        </div> 
+                    </div>
+                  </div>
+                </div>
+               </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <!-- !Orta Taraf -->
+
+    <!-- !alt taraf -->
+    <div class="row"> 
+
+      <!-- ? Harcanan Malzeme Miktarı -->
+      <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-4">
+        <div class="card h-100">
+          <div class="card-header d-flex align-items-center justify-content-between pb-0">
+            <div class="row">
+              <div class="col-12 d-flex justify-content-start border-bottom">
+                <h5 class="me-2">Harcanan Malzeme Miktarları</h5>
+              </div>
+              <div class="col-12 mt-2 d-flex justify-content-start">
+                <ul class="nav nav-pills" role="tablist">
+                  <li class="nav-item" >
+                    <a class="nav-link active" id="first" data-bs-toggle="pill" href="#home">Haftalık</a>
+                  </li>
+                  <li class="nav-item" >
+                    <a class="nav-link" id="second" data-bs-toggle="pill" href="#menu1">Aylık</a>
+                  </li>
+                  <li class="nav-item" >
+                    <a class="nav-link" id="third" data-bs-toggle="pill" href="#menu2">Yıllık</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="tab-content" id="pills-tabContent">
+              <div id="home" class="tab-pane active">
+                <span class="badge bg-label-warning rounded-pill" style="margin-left: -25px; margin-top:-15px;">{{bugun.yazi}}</span>
+                <table id="topmalzemelerhaftalık" style="margin-left: -25px; margin-top:15px;" 
+                class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+                  {{m.tablehead_4("No","İsim","Birim","Miktar")}}
+                  <tbody>
+                    {% for isim,miktar in siparis_istatistikleri.haftanin_malzemeleri.items() %} 
+                    <tr>
+                      <td>{{loop.index}}</td>
+                      <td>{{isim}}</td>
+                      <td>
+                        {% if isim == "Yumurta" %} 
+                          {{miktar[0]}}
+                        {% else %}
+                          {{miktar[0]/1000}}
+                        {% endif %}
+                      </td>
+                      <td>{{miktar[1]}}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table> 
+              </div>
+              <div id="menu1" class="tab-pane fade">
+                <span class="badge bg-label-warning rounded-pill" style="margin-left: 70px; margin-top:-15px;">{{bugun.ay}}</span> 
+                <table id="topmalzemelerhaftalık" style="margin-left: -25px; margin-top:15px;" 
+                class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+                  {{m.tablehead_4("No","İsim","Birim","Miktar")}}
+                  <tbody>
+                    {% for isim,miktar in siparis_istatistikleri.ayin_malzemeleri.items() %} 
+                    <tr>
+                      <td>{{loop.index}}</td>
+                      <td>{{isim}}</td>
+                      <td>
+                        {% if isim == "Yumurta" %} 
+                          {{miktar[0]}}
+                        {% else %}
+                          {{miktar[0]/1000}}
+                        {% endif %}
+                      </td>
+                      <td>{{miktar[1]}}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div id="menu2" class="tab-pane fade">
+                <span class="badge bg-label-warning rounded-pill" style="margin-left: 150px; margin-top:-15px;">{{bugun.yil}}</span>
+                <table id="topmalzemelerhaftalık" style="margin-left: -25px; margin-top:15px;" 
+                class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+                  {{m.tablehead_4("No","İsim","Birim","Miktar")}}
+                  <tbody>
+                    {% for isim,miktar in siparis_istatistikleri.yilin_malzemeleri.items() %} 
+                    <tr>
+                      <td>{{loop.index}}</td>
+                      <td>{{isim}}</td>
+                      <td>
+                        {% if isim == "Yumurta" %} 
+                          {{miktar[0]}}
+                        {% else %}
+                          {{miktar[0]/1000}}
+                        {% endif %}
+                      </td>
+                      <td>{{miktar[1]}}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ? Harcanan Malzeme Miktarı -->
+        
+      <!-- ? Top 10 Müşteri -->
+      <div class="col-md-6 col-lg-4 col-xl-4 order-1 mb-4">
+        <div class="card h-100">
+          <div class="card-header d-flex align-items-center justify-content-between pb-0">
+            <div class="row">
+              <div class="col-12 d-flex justify-content-start border-bottom">
+                <h5 class="me-2">Top-10 Müşteri</h5>
+              </div>                          
+            </div>
+          </div>
+          <div class="card-body">
+            <span class="badge bg-label-warning rounded-pill mt-5">Tüm Zamanlar</span>
+            <table id="topmalzemelerhaftalık" style="margin-top:25px;" 
+            class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+              {{m.tablehead_4("No","İsim","Soyisim","sipariş Sayısı")}}
+              <tbody>
+                {% for musteri in top10[0] %} 
+                <tr>
+                  <td>{{loop.index}}</td>
+                  <td>{{musteri.isim}}</td>
+                  <td>{{musteri.soyisim}}</td>
+                  <td class="text-center">{{musteri.siparisler|length}}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- ? Top 10 Müşteri -->
+      
+      <!-- ? En Çok Kullanım -->
+      <div class="col-md-6 col-lg-4 col-xl-4 order-2 mb-4">
+        <div class="card h-100">
+          <div class="card-header d-flex align-items-center justify-content-between pb-0">
+            <div class="row">
+              <div class="col-12 d-flex justify-content-start border-bottom">
+                <h5 class="me-2">En Çok Sipariş Edilen</h5>
+              </div>
+              <div class="col-12 mt-2 d-flex justify-content-start">
+                <ul class="nav nav-pills" role="tablist">
+                  <li class="nav-item" >
+                    <a class="nav-link active" id="first" data-bs-toggle="pill" href="#pasta">Pasta</a>
+                  </li>
+                  <li class="nav-item" >
+                    <a class="nav-link" id="second" data-bs-toggle="pill" href="#model">Model</a>
+                  </li>
+                  <li class="nav-item" >
+                    <a class="nav-link" id="third" data-bs-toggle="pill" href="#kullanım">Kullanım</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="tab-content" id="pills-tabContent">
+              <div id="pasta" class="tab-pane active">
+                <span class="badge bg-label-warning rounded-pill" style="margin-left: -25px; margin-top:-15px;">Tüm Zamanlar</span>
+                <table id="topmalzemelerhaftalık" style="margin-left: -25px; margin-top:15px;" 
+                class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+                  {{m.tablehead_3("No","Çeşit","Sipariş Sayısı")}}
+                  <tbody>
+                    {% for urun in top10[1] %}  
+                      <tr>
+                        <td>{{loop.index}}</td>
+                        <td>{{urun.isim}}</td>
+                        <td class="text-center">{{urun.siparis_sayisi}}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table> 
+              </div>
+              <div id="model" class="tab-pane fade">
+                <span class="badge bg-label-warning rounded-pill" style="margin-left: -25px; margin-top:-15px;">Tüm Zamanlar</span> 
+                <table id="topmalzemelerhaftalık" style="margin-left: -25px; margin-top:15px;" 
+                class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+                {{m.tablehead_3("No","Model","Sipariş Sayısı")}}
+                  <tbody>
+                    {% for siparis in top10[2] %} 
+                    <tr>
+                      <td>{{loop.index}}</td>
+                      <td>{{siparis.model}}</td>
+                      <td class="text-center">{{siparis.aciklama}}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div id="kullanım" class="tab-pane fade">
+                <span class="badge bg-label-warning rounded-pill" style="margin-left: -25px; margin-top:-15px;">Tüm Zamanlar</span>
+                <table id="topmalzemelerhaftalık" style="margin-left: -25px; margin-top:15px;" 
+                class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+                  {{m.tablehead_3("No","Kullanım","Sipariş Sayısı")}}
+                  <tbody>
+                    {% for siparis in top10[3] %} 
+                    <tr>
+                      <td>{{loop.index}}</td>
+                      <td>{{siparis.tur}}</td>
+                      <td class="text-center">{{siparis.maliyet}}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- ? En Çok Kullanım -->
+      
+    </div>
+    <!-- alt taraf -->
+  </div>
+  <!-- Content -->
+</div>
+<!-- Content wrapper -->
+
+<div id="calendarModal" class="modal fade" >
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h4 id="modalTitle" class="modal-title"></h4>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div id="modalBody" class="modal-body">
+        <ul>
+          <li id="tarih"></li>
+          <li id="musteri_isim"></li>
+          <li id="urun"></li>
+          <li id="pasta_turu"></li>
+          <li id="pasta_modeli"></li>
+        </ul>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Kapat</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock body %}
+
+<!-- ? Takvim -->
+
+{% include "includes/takvim.html" %} 
+

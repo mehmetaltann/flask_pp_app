@@ -1,0 +1,270 @@
+{% extends "layout.html" %}
+{% block title %}Ürünler{% endblock %}
+{% block body %}
+{% import "macros.html" as m %}
+
+<!-- ? İçerik -->
+<div class="container-fluid px-2">
+  {{m.ust_bilgi("Ürünler","fas fa-gift")}}
+  <div class="row">
+
+    <!-- ? Ürün Ekleme - Ürün Tablosu -->
+    <div class="col-xl-5">
+      <!-- ? Ürün Ekleme -->
+      <div class="row ">
+        <button type="submit" class="btn btn-block btn-outline-primary" data-toggle="modal" data-target="#urunekle"><i class="fas fa-plus"></i> Ürün Ekle</button>   
+        {{m.model_acilis("urunekle","urunlerModalLabel")}}
+        {{m.model_header("Ürün Ekle","urunlerModalLabel")}}
+          <form action="{{url_for('main.urun_ekle')}}" method="POST">
+            {{m.input_group_modal_zorunlu("İsim","text","urunisimekle","")}}      
+            {% call m.select_modal("Tür","urunboyutekle") %}
+              <option value="4-8 Kişilik">4-8 Kişilik</option>
+              <option value="8-12 Kişilik">8-12 Kişilik</option>
+              <option value="12-16 Kişilik">12-16 Kişilik</option>
+              <option value="16-20 Kişilik">16-20 Kişilik</option>
+              <option value="20-25 Kişilik">20-25 Kişilik</option>
+              <option value="25-30 Kişilik">25-30 Kişilik</option>
+            {% endcall %}
+            {{m.input_group_modal_zorunlu_degil("Not","text","urunnotekle", "")}}
+            {{m.button_resimsiz("KAYDET")}} 
+          </form>
+        {{m.model_kapanis()}} 
+      </div>
+      <!-- ? Ürün Ekleme -->
+
+      <!-- ? Ürün Veri Tablosu -->
+      <div class="row mt-3 ">
+        <table id="urunler" class="table table-responsive table-sm table-hover table-striped"  cellspacing="0" width="100%">
+          {{m.tablehead_7("","İsim","Boyut","Maliyet","Notlar","İşlemler","İçerik")}}
+          <tbody>
+            {% for urun in urunler|sort(reverse=false, attribute="id") %}
+              {% set bc = namespace (genel_toplam = 0) %}
+              {% for urun_tarif in urun.tarifler%}           
+                {% for malzeme in urun_tarif.tarif.malzemeler %} 
+                  {% set bc.genel_toplam = bc.genel_toplam + (malzeme.hammadde.fiyat * malzeme.hammadde_miktari / malzeme.hammadde.miktar * urun_tarif.tarif_miktari)|float %}
+                {% endfor %}
+              {% endfor %}
+              {% set bh = namespace (genel_toplam = 0) %}
+              {% for malzeme in urun.hammaddeler%}           
+                {% set bh.genel_toplam = bh.genel_toplam + (malzeme.hammadde.fiyat * malzeme.hammadde_miktari / malzeme.hammadde.miktar) %}
+              {% endfor %}
+            <tr>
+              <th>{{loop.index}}</th>
+              <td>{{urun.isim}}</td>
+              <td>{{urun.boyut}}</td>
+              <th>{{(bc.genel_toplam + bh.genel_toplam)|round|currencyFormat}}</th>
+              <td>{{urun.aciklama}}</td>
+              <!-- ? İşlemler -->
+              <td>
+
+                <!-- ? Ürün Güncelle -->
+                <button type="submit" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#urun{{urun.id}}"><span class="fas fa-pen fa-xs"></button>                        
+                <div class="modal fade" id="urun{{urun.id}}" tabindex="-1" role="dialog" aria-labelledby="#kitapgunModalLabel" aria-hidden="true">
+                  <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                    {{m.model_header("Ürün Güncelle","ÜrünModalLabel")}}
+                    <form action="{{url_for('main.urun_guncelle', urun_id=urun.id)}}" method="POST">
+                      {{m.input_group_modal_zorunlu("İsim","text","urunisimguncelle", urun.isim)}}
+                      {% call m.select_modal("Boyut","urunboyutguncelle") %}
+                        <option value="4-8 Kişilik" {{'selected' if urun.boyut == "4-8 Kişilik" }}>4-8 Kişilik</option>
+                        <option value="8-12 Kişilik" {{'selected' if urun.boyut == "8-12 Kişilik" }}>8-12 Kişilik</option>
+                        <option value="12-16 Kişilik" {{'selected' if urun.boyut == "12-16 Kişilik" }}>12-16 Kişilik</option>
+                        <option value="16-20 Kişilik" {{'selected' if urun.boyut == "16-20 Kişilik" }}>16-20 Kişilik</option>
+                        <option value="20-25 Kişilik" {{'selected' if urun.boyut == "20-25 Kişilik" }}>20-25 Kişilik</option>
+                        <option value="25-30 Kişilik" {{'selected' if urun.boyut == "25-30 Kişilik" }}>25-30 Kişilik</option>
+                      {% endcall %}
+                      {{m.input_group_modal_zorunlu_degil("Not","text","urunnotguncelle", urun.aciklama)}}                    
+                      {{m.button_resimsiz("GÜNCELLE")}}
+                    </form>
+              {{m.model_kapanis()}}
+
+              <!-- ? Ürün Sil -->
+              {{m.sil(urun.id,"urunareadelete",url_for('main.urun_sil', urun_id=urun.id))}}
+
+              </td>
+              <td>
+                <a type="button" class="btn btn-outline-primary btn-sm" href="{{url_for('main.icerik_getir', urun_id=urun.id)}}">
+                <span class="fa fa-regular fa-eye fa-xs"></span></a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <!-- ? Ürün Veri Tablosu -->
+    </div>
+    <!-- ? Ürün Ekleme - Ürün Tablosu -->
+
+    <!-- ? Ürün İçeriği -->
+    <div class="col-xl-7">
+      {% if kilavuz %}
+      <div class="row ms-1">
+        <button type="submit" class="btn btn-block btn-outline-primary"></i>{{urun_ismi}} - {{urun_boyutu}} - İçerik</button>
+        <!-- ? Ürün Tarif Veri Tablosu -->
+        <div class="col-lg-6 mt-2">
+        <button style="width:100%" type="submit" class="btn btn-block btn-outline-primary">Tarifler</button>
+        <table class="table table-sm table-hover table-striped table-bordered mt-3"  cellspacing="0" width="100%">
+          {{m.tablehead_6("","İsim","Miktar","Birim","Maliyet","İşlemler")}}
+          <tbody>
+            {% for urun_tarif in urun_tarifler|sort(reverse=false, attribute="id") %} 
+              {% set ns = namespace (genel_toplam = 0) %}
+              {% for malzeme in urun_tarif.tarif.malzemeler %} 
+                {% set ns.genel_toplam = ns.genel_toplam + (malzeme.hammadde.fiyat * malzeme.hammadde_miktari / malzeme.hammadde.miktar) %}
+              {% endfor %}
+            <tr>
+              <td>{{loop.index}}</td>
+              <th>{{urun_tarif.tarif.isim}}</th>
+              <td>{{urun_tarif.tarif_miktari}}</td>
+              <td>{{urun_tarif.tarif_birimi}}</td>
+              <td>{{(ns.genel_toplam * urun_tarif.tarif_miktari)|round|currencyFormat}}</td>
+              <td>
+
+                <!-- ? Ürün Tarif Güncelleme -->
+                <button type="submit" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#uruntarif{{urun_tarif.id}}"><span class="fas fa-pen fa-xs"></button>                        
+                  <div class="modal fade" id="uruntarif{{urun_tarif.id}}" tabindex="-1" role="dialog" aria-labelledby="#kitapgunModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                      <div class="modal-content">
+                      {{m.model_header("Ürün Tarifi Güncelle","UrunTarifModalLabel")}}
+                      <form action="{{url_for('main.urun_tarif_guncelle',urun_tarif_id=urun_tarif.id, urun_id=urun_id)}}" method="POST">
+                        {{m.input_group_modal_readonly("Tarif","text","uruntarifisimguncelle", urun_tarif.tarif.isim)}}
+                        {{m.input_group_modal_zorunlu("Miktar","number","uruntarifmiktarguncelle", urun_tarif.tarif_miktari)}}
+                        {% call m.select_modal("Birim","uruntarifbirimguncelle") %}
+                          <option value="Olcu" {{'selected' if urun_tarif.tarif_birimi == "Olcu" }}>Ölçü</option>
+                          <option value="Gram" {{'selected' if urun_tarif.tarif_birimi == "Gram" }}>Gram</option>
+                        {% endcall %}                  
+                        {{m.button_resimsiz("GÜNCELLE")}}
+                      </form>
+                  {{m.model_kapanis()}}
+
+                <!-- ? Ürün Tarif Silme -->
+                <button type="submit" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#ut{{urun_tarif.id}}"><span class="fas fa-trash fa-xs"></span></button>
+                <div class="modal fade" id="ut{{urun_tarif.id}}" tabindex="-1" role="dialog" aria-labelledby="#uruntarifsilareadelete"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-sm" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="uruntarifsilareadelete">Kayıt Silinsin mi ?</h5>
+                              <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                              <div class="d-grid gap-2 mx-auto">
+                                <a type="button" class="btn btn-outline-primary" href="{{url_for('main.urun_tarif_sil', urun_tarif_id=urun_tarif.id, urun_id=urun_tarif.urun_id)}}">Sil</a>
+                                <button type="button" class="btn btn-outline-primary" data-dismiss="modal">İptal</button>
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}    
+          </tbody>
+        </table>
+
+        <!-- ? Ürün Tarif Ekleme -->
+        <button type="submit" class="btn btn-block btn-outline-primary float-end" data-toggle="modal" data-target="#uruntarifekle"><i class="fas fa-plus"></i></button> 
+        {{m.model_acilis("uruntarifekle","uruntarifModalLabel")}}
+        {{m.model_header("Ürün Tarifi Ekle","uruntarifModalLabel")}}
+            <form action="{{url_for('main.urun_tarif_ekle', urun_id=urun_id)}}" method="POST">
+              {% call m.select_modal("Tarif","uruntarifekle") %}
+                {% for tarif in tarifler %}
+                  <option value="{{tarif.id}}">{{tarif.isim}}</option>
+                {% endfor %}
+              {% endcall %}
+              {{m.input_group_modal_zorunlu("Miktar","number","uruntarifmiktarekle", "")}}
+              {% call m.select_modal("Birim","uruntarifbirimekle") %}
+                <option value="Olcu">Ölçü</option>
+                <option value="Gram">Gram</option>
+              {% endcall %}
+              {{m.button_resimsiz("KAYDET")}}
+            </form>
+          {{m.model_kapanis()}}
+        </div>
+        <!-- ? Ürün Tarif Veri Tablosu -->
+        <!-- ? Ürün Malzeme Veri Tablosu -->
+        <div class="col-lg-6 mt-2">
+          <button style="width:100%" type="submit" class="btn btn-block btn-outline-primary">Malzemeler</button>
+          <table class="table table-sm table-hover table-striped table-bordered mt-3"  cellspacing="0" width="100%">
+            {{m.tablehead_6("","İsim","Miktar","Birim","Maliyet","İşlemler")}}
+            <tbody>
+              {% for urun_hammadde in urun_hammaddeler|sort(reverse=false, attribute="id") %} 
+              <tr>
+                <td>{{loop.index}}</td>
+                <th>{{urun_hammadde.hammadde.isim}}</th>
+                <td>{{urun_hammadde.hammadde_miktari}}</td>
+                <td>{{urun_hammadde.hammadde_birimi}}</td>
+                <td>{{(urun_hammadde.hammadde_miktari * urun_hammadde.hammadde.fiyat / urun_hammadde.hammadde.miktar)|round|currencyFormat}}</th>
+                <td>
+                  <!-- ? Ürün Hammadde Güncelleme -->
+                  <button type="submit" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#urunhammadde{{urun_hammadde.id}}"><span class="fas fa-pen fa-xs"></button>                        
+                    <div class="modal fade" id="urunhammadde{{urun_hammadde.id}}" tabindex="-1" role="dialog" aria-labelledby="#kitapgunModalLabel" aria-hidden="true">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                        {{m.model_header("Ürün Tarifi Güncelle","UrunTarifModalLabel")}}
+                        <form action="{{url_for('main.urun_hammadde_guncelle',urun_hammadde_id=urun_hammadde.id, urun_id=urun_id)}}" method="POST">
+                          {{m.input_group_modal_readonly("Tarif","text","urunhammaddeisimguncelle", urun_hammadde.hammadde.isim)}}
+                          {{m.input_group_modal_zorunlu("Miktar","number","urunhammaddemiktarguncelle", urun_hammadde.hammadde_miktari)}}
+                          {% call m.select_modal("Birim","urunhammaddebirimguncelle") %}
+                            <option value="Gram" {{'selected' if urun_hammadde.hammadde_birimi == "Gram" }}>Gram</option>
+                            <option value="Adet" {{'selected' if urun_hammadde.hammadde_birimi == "Adet" }}>Adet</option>
+                            <option value="Litre" {{'selected' if urun_hammadde.hammadde_birimi == "Litre" }}>Litre</option>
+                            <option value="Bardak" {{'selected' if urun_hammadde.hammadde_birimi == "Bardak" }}>Bardak</option>
+                            <option value="Metre" {{'selected' if urun_hammadde.hammadde_birimi == "Metre" }}>Metre</option>
+                            <option value="Kasık" {{'selected' if urun_hammadde.hammadde_birimi == "Kasık" }}>Kaşık</option>
+                            {% endcall %}                  
+                          {{m.button_resimsiz("GÜNCELLE")}}
+                        </form>
+                    {{m.model_kapanis()}}
+
+                    <!-- ? Ürün Hammadde Silme -->
+                    <button type="submit" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#uh{{urun_hammadde.id}}"><span class="fas fa-trash fa-xs"></span></button>
+                    <div class="modal fade" id="uh{{urun_hammadde.id}}" tabindex="-1" role="dialog" aria-labelledby="#urunhammaddesilareadelete"
+                    aria-hidden="true">
+                      <div class="modal-dialog modal-sm" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="urunhammaddesilareadelete">Kayıt Silinsin mi ?</h5>
+                            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body">
+                            <div class="d-grid gap-2 mx-auto">
+                              <a type="button" class="btn btn-outline-primary" href="{{url_for('main.urun_hammadde_sil', urun_hammadde_id=urun_hammadde.id, urun_id=urun_hammadde.urun_id)}}">Sil</a>
+                              <button type="button" class="btn btn-outline-primary" data-dismiss="modal">İptal</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </td>
+                </tr>
+                {% endfor %}    
+              </tbody>
+          </table>
+
+            <!-- ? Ürün Hammadde Ekleme -->
+            <button type="submit" class="btn btn-block btn-outline-primary float-end" data-toggle="modal" data-target="#urunhammaddeekle"><i class="fas fa-plus"></i></button> 
+              {{m.model_acilis("urunhammaddeekle","urunhammaddeModalLabel")}}
+              {{m.model_header("Ürün Malzeme Ekle","urunhammaddeModalLabel")}}
+              <form action="{{url_for('main.urun_malzeme_ekle', urun_id=urun_id)}}" method="POST">
+                {% call m.select_modal("Malzeme","urunmalzemeekle") %}
+                  {% for hammadde in hammaddeler %}
+                    <option value="{{hammadde.id}}">{{hammadde.isim}}</option>
+                  {% endfor %}
+                {% endcall %}
+                {{m.input_group_modal_zorunlu("Miktar","number","urunmalzememiktarekle", "")}}
+                {{m.button_resimsiz("KAYDET")}}
+              </form>
+            {{m.model_kapanis()}}
+            
+        </div>
+        <!-- ? Ürün Malzeme Veri Tablosu -->
+      </div>
+      {% endif %}
+    </div>
+    <!-- ? Ürün İçeriği -->
+
+  </div>
+</div>
+<!-- ? İçerik -->
+{% endblock body %}

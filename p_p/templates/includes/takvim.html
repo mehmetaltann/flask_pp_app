@@ -1,0 +1,55 @@
+<!-- ? Takvim -->
+{% block script %}
+<script src="{{url_for ('static', filename='js/takvim/main.min.js')}}"></script>
+<script src="{{url_for ('static', filename='js/takvim/tr.js')}}"></script>
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+  var calendarEl = document.getElementById('calendar');
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    selectable: true,
+    headerToolbar: {
+      left: "prev,next",
+      center: "title",
+      right: "dayGridMonth,dayGridWeek,listWeek"
+    },
+    themeSystem: 'bootstrap5',
+    displayEventTime: false,
+    locale: 'tr',
+    contentHeight: "auto",
+    events: [
+      {% for siparis in siparis_bilgileri %} 
+      {
+        title: {{siparis.ek1|tojson|safe}} + "<br>" + {{siparis.ek2|tojson|safe}} + "<br>" + {{siparis.model|tojson|safe}},
+        start: {{siparis.tarih.strftime('%Y-%m-%d')|tojson|safe}},
+        backgroundColor: "#696cff",
+        extendedProps: {
+          tarih: "Tarih" + ":  "+ {{siparis.tarih.strftime('%d.%m.%Y')|tojson|safe}},
+          musteri_isim: "Müşteri" + ":  "+ {{siparis.ek1|tojson|safe}},
+          urun: "Ürün" + ":  "+ {{siparis.ek2|tojson|safe}},
+          pasta_turu: "Kullanım" + ":  "+ {{siparis.tur|tojson|safe}},
+          pasta_modeli: "Model" + ":  "+ {{siparis.model|tojson|safe}},
+        },
+      },
+      {% endfor %}
+    ],
+    eventClick: function(arg) {
+      $('#modalTitle').html("Sipariş Bilgileri");
+      $('#tarih').text(arg.event.extendedProps.tarih);
+      $('#musteri_isim').text(arg.event.extendedProps.musteri_isim);
+      $('#urun').text(arg.event.extendedProps.urun);
+      $('#pasta_turu').text(arg.event.extendedProps.pasta_turu);
+      $('#pasta_modeli').text(arg.event.extendedProps.pasta_modeli);
+      $('#calendarModal').modal();
+    },
+    eventContent: function( info ) {
+      return {html: info.event.title};
+    },
+  });
+  calendar.render();
+  $(".fc-event").css("font-size","12px");
+});
+
+</script>
+
+{% endblock script %}

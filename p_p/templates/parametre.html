@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block body %}
+{% import "macros.html" as m %}
+
+<div class="container px-2">
+    {{m.ust_bilgi("Kullanıcılar","fa fa-user-o")}}
+    <div class="row">
+        <div class="col-lg-6">
+            {{m.button_target("Kullanıcı Ekle", "fas fa-plus", "modal", "#kullaniciekle")}}
+            <table class="table">
+            {{m.tablehead_3("#","Kullanıcı Adı","İşlemler")}}
+            <tbody>
+            {% for user in users %}
+                <tr>
+                <td>{{loop.index}}</td>
+                <td >{{user.username}}</td>
+                <td>
+                    <button type="submit" class="btn btn-outline-secondary btn-sm" data-toggle="modal" data-target="#my{{user.id}}"><span class="fas fa-pen fa-xs   "></button>                   
+                    <div class="modal fade" id="my{{user.id}}" tabindex="-1" role="dialog" aria-labelledby="#userModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            {{m.model_header("Kullanıcı Güncelle","userModalLabel")}}
+                            <form action="{{url_for('giris.parametreler_kullanici_guncelle', user_id=user.id)}}" method="POST">
+                                {{m.input_group_modal_zorunlu("Kullanıcı Adı","text","kullaniciadiguncelle", user.username)}}
+                                {{m.input_group_modal_zorunlu("Kullanıcı Şifre","password","kullanicisifreguncelle", user.password)}}
+                                {{m.button_resimsiz("GÜNCELLE")}}
+                            </form>
+                    {{m.model_kapanis()}}
+                    {{m.sil(user.id,"userareadelete",url_for('giris.parametreler_kullanici_sil', user_id=user.id))}}
+                </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+        </div>
+        </div>
+    </div>
+
+{{m.model_acilis("kullaniciekle","kullaniciModalLabel")}}
+  {{m.model_header("Kullanıcı Ekle","kullaniciModalLabel")}}
+    <form action="{{url_for('giris.parametreler_kullanici_ekle')}}" method="POST">
+      {{m.input_group_modal_zorunlu("Kullanıcı İsmi","text","kullaniciisimekle","")}}
+      {{m.input_group_modal_zorunlu("Kullanıcı Şifresi","text","kullanicisifreekle","")}}
+      {{m.button_resimsiz("KAYDET")}}
+    </form>
+{{m.model_kapanis()}}
+
+{% endblock body %}
+

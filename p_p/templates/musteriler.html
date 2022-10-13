@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+{% block head %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.23/fc-3.3.2/fh-3.1.8/r-2.2.7/sc-2.0.3/sl-1.3.1/datatables.min.css"/>
+{% endblock head %}
+{% block title %}Müşteriler{% endblock %}
+{% block body %}
+{% import "macros.html" as m %}
+
+<!-- ? Müşteri Ekleme -->
+<div class="container">
+  {{m.ust_bilgi("Müşteriler","fas fa-users")}}
+  <div class="row mt-3">
+    <button type="submit" class="btn btn-block btn-outline-primary" data-toggle="modal" data-target="#musteriekle"><i class="fas fa-plus"></i> Müşteri Ekle</button>   
+    {{m.model_acilis("musteriekle","musterilerModalLabel")}}
+    {{m.model_header("Müşteri Ekle","musterilerModalLabel")}}
+      <form action="{{url_for('main.musteri_ekle')}}" method="POST">
+        {{m.input_group_modal_zorunlu("İsim","text","musteriisimekle","")}}
+        {{m.input_group_modal_zorunlu_degil("Soyisim","text","musterisoyisimekle", "")}}
+        {{m.input_group_modal_zorunlu_degil("Telefon","number","musteritelefonekle", "")}}
+        {{m.input_group_modal_zorunlu_degil("Not","text","musterinotekle", "")}}      
+        {{m.button_resimsiz("KAYDET")}}
+      </form>
+    {{m.model_kapanis()}}
+</div>
+
+<!-- ? Arama-->
+<div class="row mt-4">
+  {{m.input_group_id("Arama","fas fa-search","text","musteri_ara","musteri_ara","")}}
+</div>
+
+<!-- ? Müşteri Veri Tablosu-->
+<div class="row mt-2">
+  <table id="musteriler" class="table table-sm table-hover table-striped table-bordered"  cellspacing="0" width="100%">
+    {{m.tablehead_8("","İsim","Soyisim","Telefon","Not","Sipariş Sayısı","Sipariş Tarihleri","İşlemler")}}
+    <tbody> 
+      {% for musteri in musteriler|sort(reverse=false, attribute="id") %} 
+      <tr >
+        <th>{{loop.index}}</th>
+        <th>{{musteri.isim}}</th>
+        <td>{{musteri.soyisim}}</td>
+        <td>{{musteri.telefon}}</td>
+        <td>{{musteri.aciklama}}</td>
+        <td class="text-center">{{musteri.siparisler|length}}</td>
+        <td class="text-center"> {% for siparis in musteri.siparisler %} 
+                  {{siparis.siparisler.tarih.strftime('%d.%m.%Y')}} <br>
+            {% endfor %}
+        </td>
+        <td>
+          <!-- ? Müşteri Güncelleme -->
+          <button type="submit" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#musteri{{musteri.id}}"><span class="fas fa-pen"></button>                        
+            <div class="modal fade" id="musteri{{musteri.id}}" tabindex="-1" role="dialog" aria-labelledby="^#kitapgunModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  {{m.model_header("Müşteri Güncelle","musteriModalLabel")}}
+                    <form action="{{url_for('main.musteri_guncelle', musteri_id=musteri.id)}}" method="POST">
+                        {{m.input_group_modal_zorunlu("İsim","text","musteriisimguncelle", musteri.isim)}}
+                        {{m.input_group_modal_zorunlu_degil("Soyisim","text","musterisoyisimguncelle", musteri.soyisim)}}
+                        {{m.input_group_modal_zorunlu_degil("Telefon","number","musteritelefonguncelle", musteri.telefon)}}
+                        {{m.input_group_modal_zorunlu_degil("Not","text","musterinotguncelle", musteri.aciklama)}}      
+                      {{m.button_resimsiz("GÜNCELLE")}}
+                    </form>
+                  {{m.model_kapanis()}}
+
+        <!-- ? Müşteri Sil -->
+        {{m.sil(musteri.id,"musteriareadelete",url_for('main.musteri_sil', musteri_id=musteri.id))}}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table> 
+</div>
+</div>
+{% endblock body %}
+
+<!-- ? TABLO JAVASCRIPT -->
+{% block script %}
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.23/fc-3.3.2/fh-3.1.8/r-2.2.7/sc-2.0.3/sl-1.3.1/datatables.min.js"></script>
+<script src="{{url_for ('static', filename='js/datatable.js')}}"></script>
+{% endblock script %}

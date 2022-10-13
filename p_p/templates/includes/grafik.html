@@ -1,0 +1,169 @@
+
+
+<div class="col-lg-4 order-0">
+    <div class="card">
+        <div class="row row-bordered g-0 mb-2 order-0">
+            <div class="container pt-2 px-2 ">
+                <h5>Sipariş Sayısı</h5>
+                <canvas id="siparis_sayisi"></canvas>
+                <script>
+                    var ctx = document.getElementById('siparis_sayisi').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: {{istatistikler.ay_sayisi|tojson|safe}},
+                            datasets: [{
+                                label: '# Ay',
+                                data: {{istatistikler.siparis_sayisi|tojson|safe}},
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                </script>
+                <h6 class="mt-2"> - Toplam Sipariş Sayısı : {{istatistikler.toplam_siparis_sayisi}}</h6> 
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 order-1">
+    <div class="card">
+        <div class="row row-bordered g-0 mb-2 order-0">
+            <div class="container pt-2 px-2 ">
+                <h5>Sipariş Tutarı</h5>
+                <canvas id="siparis_tutari"></canvas>
+                <script>
+                    var ctx = document.getElementById('siparis_tutari').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: {{ istatistikler.ay_sayisi|tojson|safe }},
+                            datasets: [{
+                                label: '# Ay',
+                                data: {{ istatistikler.siparis_tutari|tojson|safe }},
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                </script>
+                <h6 class="mt-2"> - Toplam Sipariş Tutarı : {{istatistikler.toplam_siparis_tutari|round|currencyFormat}}</h6> 
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 order-2">
+    <div class="card">
+        <div class="row row-bordered g-0 mb-2 order-0">
+            <div class="container pt-2 px-2 ">
+                <h5>Sipariş Maliyeti</h5>
+                <canvas id="siparis_maliyeti"></canvas>
+                <script>
+                    var ctx = document.getElementById('siparis_maliyeti').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: {{ istatistikler.ay_sayisi|tojson|safe }},
+                            datasets: [{
+                                label: '# Ay',
+                                data: {{ istatistikler.siparis_maliyeti|tojson|safe }},
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                </script>     
+                <h6 class="mt-2">  - Toplam Sipariş Maliyeti : {{istatistikler.toplam_siparis_maliyeti|round|currencyFormat}}</h6> 
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 order-3">
+    <div class="card">
+        <div class="row row-bordered g-0 mb-2 order-0">
+            <div class="container pt-2 px-2 ">
+                <h5>Sipariş Karı</h5>
+                <canvas id="siparis_kari"></canvas>
+                <script>
+                    var ctx = document.getElementById('siparis_kari').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: {{ istatistikler.ay_sayisi|tojson|safe }},
+                            datasets: [{
+                                label: '# Ay',
+                                data: {{ istatistikler.siparis_kari|tojson|safe }},
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                </script>     
+                <h6 class="mt-2">  - Toplam Sipariş Karı : {{istatistikler.toplam_siparis_kari|round|currencyFormat}}</h6> 
+                <h6 class="mt-2">  - Ortalama Sipariş Karı : {{istatistikler.ortalama_siparis_kari|round|currencyFormat}}</h6> 
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 order-3">
+    <div class="card">
+        <div class="row row-bordered g-0 mb-2 order-0">
+            <div class="container pt-2 px-2 ">
+                <h5>Sipariş Kar Oranı</h5>
+                <canvas id="siparis_kar_orani"></canvas>
+                <script>
+                    var ctx = document.getElementById('siparis_kar_orani').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: {{ istatistikler.ay_sayisi|tojson|safe }},
+                            datasets: [{
+                                label: '# Ay',
+                                data: {{ istatistikler.siparis_kar_oranı|tojson|safe }},
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                </script>     
+                <h6 class="mt-2">  - Ortalama Sipariş Kar Oranı : %{{istatistikler.ortalama_siparis_kar_orani}}</h6> 
+            </div>
+        </div>
+    </div>
+</div>
+

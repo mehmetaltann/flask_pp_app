@@ -1,0 +1,31 @@
+<header>
+  <nav class="navbar navbar-expand-xl navbar-primary bg-primary">
+    <a href="{{url_for('main.index')}}" class="navbar-brand"><i class="fas fa-store"></i>Harf<b>Pasta</b></a>  
+    <button type="button" class="navbar-toggler pe-2" data-toggle="collapse" data-target="#navbarCollapse">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Collection of nav links, forms, and other content for toggling -->
+    <div id="navbarCollapse" class="collapse navbar-collapse justify-content-end">		
+      <div class="navbar-nav ml-auto">
+        <a href="{{url_for('main.index')}}" class="nav-item nav-link active"><i class="fa fa-home"></i><span>Anasayfa</span></a>
+        <a href="{{url_for('main.musteriler')}}" class="nav-item nav-link"><i class="fa fa-users"></i><span>Müşteriler</span></a>
+        <a href="{{url_for('main.siparisler')}}" class="nav-item nav-link"><i class="fas fa-basket-shopping"></i><span>Siparişler</span></a>
+        <a href="{{url_for('main.urunler')}}" class="nav-item nav-link"><i class="fas fa-gift"></i><span>Ürünler</span></a>
+        <a href="{{url_for('main.tarifler')}}" class="nav-item nav-link"><i class="fas fa-mortar-pestle"></i><span>Tarifler</span></a>
+        <a href="{{url_for('main.hammadde')}}" class="nav-item nav-link"><i class="fas fa-wheat-awn"></i><span>Malzemeler</span></a>
+        <a href="{{url_for('main.rakamlar')}}" class="nav-item nav-link"><i class="fa fa-pie-chart"></i><span>Rakamlar</span></a>
+        <div class="nav-item dropdown ps-2">
+          <a href="#" data-toggle="dropdown" style="font-size: 20px;" class="pe-5 nav-item nav-link dropdown-toggle user-action">
+            <img src="{{url_for ('static', filename='img/1.png')}}" class="avatar" alt="Avatar"> SENA ALTAN 
+            <b class="caret"></b>
+          </a>
+          <div class="dropdown-menu">
+            <a href="{{url_for('main.notlar')}}" class="dropdown-item"><i class="fa fa-notes-medical"></i> Not Defteri</a>
+            <a href="{{url_for('giris.parametreler')}}" class="dropdown-item"><i class="fa fa-user-o"></i> Kullanıcılar</a>
+            <a href="{{url_for('giris.log_out')}}" class="dropdown-item"><i class="material-icons">&#xE8AC;</i> Çıkış</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
